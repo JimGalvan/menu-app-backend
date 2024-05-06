@@ -22,16 +22,21 @@ from rest_framework_nested import routers
 from menu import views
 
 router = DefaultRouter()
-router.register(r'users', views.UserViewSet, basename='user')
+router.register(r'users', views.UserViewSet)
 # restaurants
-router.register(r'restaurants', views.RestaurantViewSet, basename='restaurant')
+router.register(r'restaurants', views.RestaurantViewSet)
 # menu
-router.register(r'menus', views.MenuViewSet, basename='menu')
+router.register(r'menus', views.MenuViewSet)
+# categories
+router.register(r'categories', views.CategoryViewSet)
+# menu items
+router.register(r'menu-items', views.MenuItemViewSet)
 
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
     path('', include(router.urls)),
+    path('api-auth/', include('rest_framework.urls')),
     path('admin/', admin.site.urls),
 ]
 
