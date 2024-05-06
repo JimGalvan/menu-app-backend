@@ -32,10 +32,11 @@ class RestaurantSerializer(serializers.HyperlinkedModelSerializer):
 
 class CategorySerializer(serializers.HyperlinkedModelSerializer):
     menu = serializers.HyperlinkedRelatedField(view_name='menu-detail', queryset=Menu.objects.all())
+    menu_items = serializers.HyperlinkedRelatedField(many=True, view_name='menuitem-detail', read_only=True)
 
     class Meta:
         model = Category
-        fields = ['url', 'id', 'name', 'description', 'menu']
+        fields = ['url', 'id', 'name', 'description', 'menu', 'menu_items']
 
 
 def get_category_names(obj):
@@ -45,19 +46,13 @@ def get_category_names(obj):
 class CategoryNameUrlSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Category
-        fields = ['url', 'name']
+        fields = ['id', 'url', 'name']
 
 
 class MenuItemSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.username')
-    # categories = serializers.HyperlinkedRelatedField(many=True, view_name='category-detail',
-    #                                                  queryset=Category.objects.all(), required=False)
     categories = CategoryNameUrlSerializer(many=True, read_only=True)
-    category_names = serializers.SerializerMethodField()
 
     class Meta:
         model = MenuItem
-        fields = ['url', 'id', 'owner', 'name', 'description', 'price', 'image', 'categories', 'category_names']
-
-    def get_category_names(self, obj):
-        return [category.name for category in obj.categories.all()]
+        fields = ['url', 'id', 'owner', 'name', 'description', 'price', 'image', 'categories']
