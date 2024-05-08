@@ -51,7 +51,7 @@ class CategoryNameUrlSerializer(serializers.HyperlinkedModelSerializer):
 
 class MenuItemSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.username')
-    categories = CategoryNameUrlSerializer(many=True, read_only=True)
+    categories = serializers.HyperlinkedRelatedField(view_name='category-detail', queryset=Category.objects.all(), many=True)
 
     class Meta:
         model = MenuItem
