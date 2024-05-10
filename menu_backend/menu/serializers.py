@@ -1,58 +1,36 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-
-from menu.models import Restaurant, Menu, Category, MenuItem
+from .models import Menu, Category, MenuItem
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
-    restaurants = serializers.HyperlinkedRelatedField(many=True, view_name='restaurant'
-                                                                           '-detail', read_only=True)
-
-    class Meta:
-        model = User
-        fields = ['url', 'id', 'username', 'restaurants']
-
-
-class MenuSerializer(serializers.HyperlinkedModelSerializer):
-    restaurant = serializers.HyperlinkedRelatedField(view_name='restaurant-detail', queryset=Restaurant.objects.all())
-
-    class Meta:
-        model = Menu
-        fields = ['url', 'id', 'name', 'description', 'isActive', 'restaurant', 'categories']
-
-
-class RestaurantSerializer(serializers.HyperlinkedModelSerializer):
-    owner = serializers.ReadOnlyField(source='owner.username')
     menus = serializers.HyperlinkedRelatedField(many=True, view_name='menu-detail', read_only=True)
 
     class Meta:
-        model = Restaurant
-        fields = ['url', 'id', 'owner', 'name', 'address', 'phone', 'email', 'website', 'description', 'logo', 'menus']
+        model = User
+        fields = ['url', 'id', 'username', 'menus']
+
+
+class MenuSerializer(serializers.HyperlinkedModelSerializer):
+    owner = serializers.ReadOnlyField(source='owner.username')
+
+    class Meta:
+        model = Menu
+        fields = ['url', 'id', 'name', 'description', 'isActive', 'owner']
 
 
 class CategorySerializer(serializers.HyperlinkedModelSerializer):
     menu = serializers.HyperlinkedRelatedField(view_name='menu-detail', queryset=Menu.objects.all())
-    menu_items = serializers.HyperlinkedRelatedField(many=True, view_name='menuitem-detail', read_only=True)
 
     class Meta:
         model = Category
-        fields = ['url', 'id', 'name', 'description', 'menu', 'menu_items']
-
-
-def get_category_names(obj):
-    return [category.name for category in obj.categories.all()]
-
-
-class CategoryNameUrlSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Category
-        fields = ['id', 'url', 'name']
+        fields = ['url', 'id', 'name', 'description', 'menu']
 
 
 class MenuItemSerializer(serializers.HyperlinkedModelSerializer):
-    owner = serializers.ReadOnlyField(source='owner.username')
-    categories = serializers.HyperlinkedRelatedField(view_name='category-detail', queryset=Category.objects.all(), many=True)
+    menu = serializers.HyperlinkedRelatedField(view_name='menu-detail', queryset=Menu.objects.all())
+    category = serializers.HyperlinkedRelatedField(view_name='category-detail', queryset=Category.objects.all())
 
     class Meta:
         model = MenuItem
-        fields = ['url', 'id', 'owner', 'name', 'description', 'price', 'image', 'categories']
+        fields = ['url', 'id', 'name', 'description', 'price', 'image', 'category', 'menu']

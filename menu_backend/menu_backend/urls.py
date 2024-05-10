@@ -23,8 +23,6 @@ from menu import views
 
 router = DefaultRouter()
 router.register(r'users', views.UserViewSet)
-# restaurants
-router.register(r'restaurants', views.RestaurantViewSet)
 # menu
 router.register(r'menus', views.MenuViewSet)
 # categories
