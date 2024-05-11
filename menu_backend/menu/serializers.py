@@ -18,10 +18,10 @@ class MenuSerializer(serializers.HyperlinkedModelSerializer):
         model = Menu
         fields = ['url', 'id', 'title', 'description', 'isActive', 'owner']
 
-    def validate_name(self, value):
+    def validate_title(self, value):
         owner = self.context['request'].user
-        if Menu.objects.filter(name=value, owner=owner).exists():
-            raise serializers.ValidationError("A menu with this name already exists.")
+        if Menu.objects.filter(title=value, owner=owner).exists():
+            raise serializers.ValidationError("A menu with this title already exists.")
         return value
 
 
@@ -45,7 +45,7 @@ class MenuRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Menu
-        fields = ['id', 'name', 'description', 'isActive', 'categories']
+        fields = ['id', 'title', 'description', 'isActive', 'categories']
 
 
 class MenuItemSerializer(serializers.HyperlinkedModelSerializer):
