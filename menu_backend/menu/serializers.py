@@ -18,6 +18,12 @@ class MenuSerializer(serializers.HyperlinkedModelSerializer):
         model = Menu
         fields = ['url', 'id', 'name', 'description', 'isActive', 'owner']
 
+    def validate_name(self, value):
+        owner = self.context['request'].user
+        if Menu.objects.filter(name=value, owner=owner).exists():
+            raise serializers.ValidationError("A menu with this name already exists.")
+        return value
+
 
 class CategorySerializer(serializers.HyperlinkedModelSerializer):
     menu = serializers.HyperlinkedRelatedField(view_name='menu-detail', queryset=Menu.objects.all())
@@ -25,6 +31,13 @@ class CategorySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Category
         fields = ['url', 'id', 'name', 'description', 'menu']
+
+    def validate(self, data):
+        menu = data.get('menu')
+        name = data.get('name')
+        if Category.objects.filter(name=name, menu=menu).exists():
+            raise serializers.ValidationError("A category with this name already exists in this menu.")
+        return data
 
 
 class MenuRetrieveSerializer(serializers.ModelSerializer):
@@ -45,9 +58,13 @@ class MenuItemSerializer(serializers.HyperlinkedModelSerializer):
 
     def validate(self, data):
         menu = data.get('menu')
+        name = data.get('name')
         category = data.get('category')
 
         if category.menu != menu:
             raise serializers.ValidationError("The category must belong to the same menu as the menu item.")
+
+        if MenuItem.objects.filter(name=name, menu=menu).exists():
+            raise serializers.ValidationError("A menu item with this name already exists in this menu.")
 
         return data
