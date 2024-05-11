@@ -34,3 +34,12 @@ class MenuItemSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = MenuItem
         fields = ['url', 'id', 'name', 'description', 'price', 'image', 'category', 'menu']
+
+    def validate(self, data):
+        menu = data.get('menu')
+        category = data.get('category')
+
+        if category.menu != menu:
+            raise serializers.ValidationError("The category must belong to the same menu as the menu item.")
+
+        return data
