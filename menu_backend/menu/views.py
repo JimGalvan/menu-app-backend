@@ -4,7 +4,7 @@ from rest_framework import viewsets, permissions
 from menu.permissions import IsOwnerOrReadOnly
 from menu.models import Menu, Category, MenuItem
 from menu.serializers import UserSerializer, MenuSerializer, CategorySerializer, \
-    MenuItemSerializer
+    MenuItemSerializer, MenuRetrieveSerializer
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -22,6 +22,11 @@ from rest_framework.decorators import action
 class MenuViewSet(viewsets.ModelViewSet):
     queryset = Menu.objects.all()
     serializer_class = MenuSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return MenuRetrieveSerializer
+        return super().get_serializer_class()
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)

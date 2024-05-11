@@ -27,6 +27,14 @@ class CategorySerializer(serializers.HyperlinkedModelSerializer):
         fields = ['url', 'id', 'name', 'description', 'menu']
 
 
+class MenuRetrieveSerializer(serializers.ModelSerializer):
+    categories = serializers.StringRelatedField(many=True)
+
+    class Meta:
+        model = Menu
+        fields = ['id', 'name', 'description', 'isActive', 'categories']
+
+
 class MenuItemSerializer(serializers.HyperlinkedModelSerializer):
     menu = serializers.HyperlinkedRelatedField(view_name='menu-detail', queryset=Menu.objects.all())
     category = serializers.HyperlinkedRelatedField(view_name='category-detail', queryset=Category.objects.all())
