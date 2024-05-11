@@ -16,7 +16,7 @@ class MenuSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Menu
-        fields = ['url', 'id', 'name', 'description', 'isActive', 'owner']
+        fields = ['url', 'id', 'title', 'description', 'isActive', 'owner']
 
     def validate_name(self, value):
         owner = self.context['request'].user
@@ -51,10 +51,11 @@ class MenuRetrieveSerializer(serializers.ModelSerializer):
 class MenuItemSerializer(serializers.HyperlinkedModelSerializer):
     menu = serializers.HyperlinkedRelatedField(view_name='menu-detail', queryset=Menu.objects.all())
     category = serializers.HyperlinkedRelatedField(view_name='category-detail', queryset=Category.objects.all())
+    categoryName = serializers.CharField(source='category.name', read_only=True)
 
     class Meta:
         model = MenuItem
-        fields = ['url', 'id', 'name', 'description', 'price', 'image', 'category', 'menu']
+        fields = ['url', 'id', 'name', 'description', 'price', 'image', 'menu', 'category', 'categoryName']
 
     def validate(self, data):
         menu = data.get('menu')

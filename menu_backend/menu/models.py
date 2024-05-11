@@ -11,7 +11,7 @@ class BaseModel(models.Model):
 
 class Menu(BaseModel):
     owner = models.ForeignKey('auth.User', related_name='menus', on_delete=models.CASCADE)
-    name = models.CharField(max_length=100)
+    title = models.CharField(max_length=100)
     description = models.TextField(null=True)
     isActive = models.BooleanField(default=True)
 
