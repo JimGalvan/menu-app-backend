@@ -20,7 +20,13 @@ class MenuSerializer(serializers.HyperlinkedModelSerializer):
 
     def validate_title(self, value):
         owner = self.context['request'].user
-        if Menu.objects.filter(title=value, owner=owner).exists():
+        queryset = Menu.objects.filter(title=value, owner=owner)
+
+        # Exclude the current instance from the queryset
+        if self.instance:
+            queryset = queryset.exclude(pk=self.instance.pk)
+
+        if queryset.exists():
             raise serializers.ValidationError("A menu with this title already exists.")
         return value
 
@@ -35,8 +41,16 @@ class CategorySerializer(serializers.HyperlinkedModelSerializer):
     def validate(self, data):
         menu = data.get('menu')
         name = data.get('name')
-        if Category.objects.filter(name=name, menu=menu).exists():
+
+        queryset = Category.objects.filter(name=name, menu=menu)
+
+        # Exclude the current instance from the queryset
+        if self.instance:
+            queryset = queryset.exclude(pk=self.instance.pk)
+
+        if queryset.exists():
             raise serializers.ValidationError("A category with this name already exists in this menu.")
+
         return data
 
 
@@ -65,7 +79,13 @@ class MenuItemSerializer(serializers.HyperlinkedModelSerializer):
         if category.menu != menu:
             raise serializers.ValidationError("The category must belong to the same menu as the menu item.")
 
-        if MenuItem.objects.filter(name=name, menu=menu).exists():
+        queryset = MenuItem.objects.filter(name=name, menu=menu)
+
+        # Exclude the current instance from the queryset
+        if self.instance:
+            queryset = queryset.exclude(pk=self.instance.pk)
+
+        if queryset.exists():
             raise serializers.ValidationError("A menu item with this name already exists in this menu.")
 
         return data
