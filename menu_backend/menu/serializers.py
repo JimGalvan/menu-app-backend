@@ -16,7 +16,7 @@ class MenuSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Menu
-        fields = ['url', 'id', 'title', 'description', 'isActive', 'owner']
+        fields = ['url', 'id', 'title', 'description', 'isActive', 'owner', 'createdAt', 'modifiedAt']
 
     def validate_title(self, value):
         owner = self.context['request'].user
@@ -36,7 +36,7 @@ class CategorySerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Category
-        fields = ['url', 'id', 'name', 'description', 'menu']
+        fields = ['url', 'id', 'name', 'description', 'menu', 'createdAt', 'modifiedAt']
 
     def validate(self, data):
         menu = data.get('menu')
@@ -59,7 +59,7 @@ class MenuRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Menu
-        fields = ['id', 'title', 'description', 'isActive', 'categories']
+        fields = ['id', 'title', 'description', 'isActive', 'categories', 'createdAt', 'modifiedAt']
 
 
 class MenuItemSerializer(serializers.HyperlinkedModelSerializer):
@@ -69,7 +69,8 @@ class MenuItemSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = MenuItem
-        fields = ['url', 'id', 'name', 'description', 'price', 'image', 'menu', 'category', 'categoryName']
+        fields = ['url', 'id', 'name', 'description', 'price', 'image', 'menu', 'category', 'categoryName', 'createdAt',
+                  'modifiedAt']
 
     def validate(self, data):
         menu = data.get('menu')

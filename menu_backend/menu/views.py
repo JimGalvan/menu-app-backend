@@ -50,6 +50,13 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
+    @action(detail=True, methods=['get'])
+    def menu_items(self, request, pk=None):
+        category = self.get_object()
+        menu_items = MenuItem.objects.filter(category=category)
+        serializer = MenuItemSerializer(menu_items, many=True, context={'request': request})
+        return Response(serializer.data)
+
 
 class MenuItemViewSet(viewsets.ModelViewSet):
     queryset = MenuItem.objects.all()
