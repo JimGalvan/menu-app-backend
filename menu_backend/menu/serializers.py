@@ -13,6 +13,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
 class MenuSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.username')
+    description = serializers.CharField(required=False, allow_null=True)  # Allow null values
 
     class Meta:
         model = Menu
@@ -20,7 +21,7 @@ class MenuSerializer(serializers.HyperlinkedModelSerializer):
 
     def validate_title(self, value):
         owner = self.context['request'].user
-        queryset = Menu.objects.filter(title=value, owner=owner)
+        queryset = Menu.objects.filter(title__exact=value, owner=owner)
 
         # Exclude the current instance from the queryset
         if self.instance:
@@ -33,6 +34,7 @@ class MenuSerializer(serializers.HyperlinkedModelSerializer):
 
 class CategorySerializer(serializers.HyperlinkedModelSerializer):
     menu = serializers.HyperlinkedRelatedField(view_name='menu-detail', queryset=Menu.objects.all())
+    description = serializers.CharField(required=False, allow_null=True)  # Allow null values
 
     class Meta:
         model = Category
@@ -54,22 +56,26 @@ class CategorySerializer(serializers.HyperlinkedModelSerializer):
         return data
 
 
+
 class MenuRetrieveSerializer(serializers.ModelSerializer):
     categories = serializers.StringRelatedField(many=True)
 
     class Meta:
         model = Menu
-        fields = ['id', 'title', 'description', 'isActive', 'categories', 'createdAt', 'modifiedAt']
+        fields = ['url', 'id', 'title', 'description', 'isActive', 'categories', 'createdAt', 'modifiedAt']
 
 
 class MenuItemSerializer(serializers.HyperlinkedModelSerializer):
     menu = serializers.HyperlinkedRelatedField(view_name='menu-detail', queryset=Menu.objects.all())
     category = serializers.HyperlinkedRelatedField(view_name='category-detail', queryset=Category.objects.all())
     categoryName = serializers.CharField(source='category.name', read_only=True)
+    menuName = serializers.CharField(source='menu.title', read_only=True)  # New field
+    description = serializers.CharField(required=False, allow_null=True)  # Allow null values
 
     class Meta:
         model = MenuItem
-        fields = ['url', 'id', 'name', 'description', 'price', 'image', 'menu', 'category', 'categoryName', 'createdAt',
+        fields = ['url', 'id', 'name', 'description', 'price', 'image', 'menu', 'category', 'categoryName', 'menuName',
+                  'createdAt',
                   'modifiedAt']
 
     def validate(self, data):
