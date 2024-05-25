@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import viewsets, permissions
+from rest_framework.pagination import PageNumberPagination
 
 from menu.permissions import IsOwnerOrReadOnly
 from menu.models import Menu, Category, MenuItem
@@ -35,8 +36,15 @@ class MenuViewSet(viewsets.ModelViewSet):
     def menu_items(self, request, pk=None):
         menu = self.get_object()
         menu_items = MenuItem.objects.filter(menu=menu)
-        serializer = MenuItemSerializer(menu_items, many=True, context={'request': request})
-        return Response(serializer.data)
+
+        # Apply pagination
+        paginator = PageNumberPagination()
+        paginated_menu_items = paginator.paginate_queryset(menu_items, request)
+
+        serializer = MenuItemSerializer(paginated_menu_items, many=True, context={'request': request})
+
+        # Return paginated response
+        return paginator.get_paginated_response(serializer.data)
 
     @action(detail=True, methods=['get'])
     def categories(self, request, pk=None):
@@ -61,3 +69,4 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class MenuItemViewSet(viewsets.ModelViewSet):
     queryset = MenuItem.objects.all()
     serializer_class = MenuItemSerializer
+    pagination_class = PageNumberPagination
