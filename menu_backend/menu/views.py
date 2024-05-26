@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import viewsets, permissions
 from rest_framework.pagination import PageNumberPagination
 
+from menu.pagination import CustomPagination
 from menu.permissions import IsOwnerOrReadOnly
 from menu.models import Menu, Category, MenuItem
 from menu.serializers import UserSerializer, MenuSerializer, CategorySerializer, \
@@ -23,6 +24,7 @@ from rest_framework.decorators import action
 class MenuViewSet(viewsets.ModelViewSet):
     queryset = Menu.objects.all()
     serializer_class = MenuSerializer
+    pagination_class = CustomPagination
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -38,7 +40,7 @@ class MenuViewSet(viewsets.ModelViewSet):
         menu_items = MenuItem.objects.filter(menu=menu)
 
         # Apply pagination
-        paginator = PageNumberPagination()
+        paginator = CustomPagination()
         paginated_menu_items = paginator.paginate_queryset(menu_items, request)
 
         serializer = MenuItemSerializer(paginated_menu_items, many=True, context={'request': request})
@@ -69,4 +71,4 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class MenuItemViewSet(viewsets.ModelViewSet):
     queryset = MenuItem.objects.all()
     serializer_class = MenuItemSerializer
-    pagination_class = PageNumberPagination
+    pagination_class = CustomPagination
