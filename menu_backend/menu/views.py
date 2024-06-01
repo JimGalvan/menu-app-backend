@@ -1,30 +1,50 @@
 from django.contrib.auth.models import User
-from rest_framework import viewsets, permissions
-from rest_framework.pagination import PageNumberPagination
+from rest_framework import viewsets
+from rest_framework.filters import OrderingFilter
 
 from menu.pagination import CustomPagination
-from menu.permissions import IsOwnerOrReadOnly
 from menu.models import Menu, Category, MenuItem
 from menu.serializers import UserSerializer, MenuSerializer, CategorySerializer, \
     MenuItemSerializer, MenuRetrieveSerializer
+from rest_framework.response import Response
+from rest_framework.decorators import action
+
+from django.db.models import Q
+from django.contrib.postgres.search import TrigramSimilarity
+from rest_framework import viewsets
+
+
+class BaseViewSet(viewsets.ModelViewSet):
+    filter_backends = [OrderingFilter]
+    pagination_class = CustomPagination
+    ordering_fields = ['createdAt', 'modifiedAt']
+
+
+class FiltersBaseViewSet(BaseViewSet):
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        search_query = self.request.GET.get('search', None)
+
+        if search_query:
+            queryset = queryset.annotate(
+                similarity=TrigramSimilarity('name', search_query)
+            ).filter(
+                Q(description__icontains=search_query) |
+                Q(name__icontains=search_query)
+            ).order_by('-similarity')
+
+        return queryset
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    This viewset automatically provides `list` and `retrieve` actions.
-    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
 
-from rest_framework.response import Response
-from rest_framework.decorators import action
-
-
-class MenuViewSet(viewsets.ModelViewSet):
+class MenuViewSet(BaseViewSet):
     queryset = Menu.objects.all()
     serializer_class = MenuSerializer
-    pagination_class = CustomPagination
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -38,6 +58,21 @@ class MenuViewSet(viewsets.ModelViewSet):
     def menu_items(self, request, pk=None):
         menu = self.get_object()
         menu_items = MenuItem.objects.filter(menu=menu)
+
+        # Apply search filter
+        search_query = self.request.GET.get('search', None)
+        if search_query:
+            menu_items = menu_items.annotate(
+                similarity=TrigramSimilarity('name', search_query)
+            ).filter(
+                Q(name__icontains=search_query) |
+                Q(description__icontains=search_query)
+            ).order_by('-similarity')
+
+        # Apply ordering
+        ordering = OrderingFilter().get_ordering(request, menu_items, self)
+        if ordering:
+            menu_items = menu_items.order_by(*ordering)
 
         # Apply pagination
         paginator = CustomPagination()
@@ -56,7 +91,7 @@ class MenuViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(BaseViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
@@ -68,7 +103,6 @@ class CategoryViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class MenuItemViewSet(viewsets.ModelViewSet):
+class MenuItemViewSet(BaseViewSet):
     queryset = MenuItem.objects.all()
     serializer_class = MenuItemSerializer
-    pagination_class = CustomPagination
