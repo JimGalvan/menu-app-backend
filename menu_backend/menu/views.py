@@ -68,7 +68,9 @@ class MenuViewSet(BaseViewSet):
                 similarity=TrigramSimilarity('name', search_query)
             ).filter(
                 Q(name__icontains=search_query) |
-                Q(description__icontains=search_query)
+                Q(description__icontains=search_query) |
+                Q(category__name__icontains=search_query) |
+                Q(price__icontains=search_query)
             ).order_by('-similarity')
 
         # Apply ordering
