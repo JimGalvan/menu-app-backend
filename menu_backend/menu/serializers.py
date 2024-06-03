@@ -56,7 +56,6 @@ class CategorySerializer(serializers.HyperlinkedModelSerializer):
         return data
 
 
-
 class MenuRetrieveSerializer(serializers.ModelSerializer):
     categories = serializers.StringRelatedField(many=True)
 

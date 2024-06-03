@@ -45,6 +45,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 class MenuViewSet(BaseViewSet):
     queryset = Menu.objects.all()
     serializer_class = MenuSerializer
+    ordering_fields = ['menu_items__category__name', 'menu_items__price', 'menu_items__name',
+                       'menu_items__description']
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -70,9 +72,9 @@ class MenuViewSet(BaseViewSet):
             ).order_by('-similarity')
 
         # Apply ordering
-        ordering = OrderingFilter().get_ordering(request, menu_items, self)
+        ordering = self.request.query_params.get('ordering')
         if ordering:
-            menu_items = menu_items.order_by(*ordering)
+            menu_items = menu_items.order_by(ordering)
 
         # Apply pagination
         paginator = CustomPagination()
