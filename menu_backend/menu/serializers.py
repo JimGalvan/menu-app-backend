@@ -14,10 +14,11 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 class MenuSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.username')
     description = serializers.CharField(required=False, allow_null=True)  # Allow null values
+    categories = serializers.StringRelatedField(many=True, read_only=True)  # New field
 
     class Meta:
         model = Menu
-        fields = ['url', 'id', 'title', 'description', 'isActive', 'owner', 'createdAt', 'modifiedAt']
+        fields = ['url', 'id', 'title', 'description', 'isActive', 'owner', 'createdAt', 'modifiedAt', 'categories']
 
     def validate_title(self, value):
         owner = self.context['request'].user
@@ -30,6 +31,14 @@ class MenuSerializer(serializers.HyperlinkedModelSerializer):
         if queryset.exists():
             raise serializers.ValidationError("A menu with this title already exists.")
         return value
+
+
+class MenuRetrieveSerializer(serializers.ModelSerializer):
+    categories = serializers.StringRelatedField(many=True)
+
+    class Meta:
+        model = Menu
+        fields = ['url', 'id', 'title', 'description', 'isActive', 'categories', 'createdAt', 'modifiedAt']
 
 
 class CategorySerializer(serializers.HyperlinkedModelSerializer):
