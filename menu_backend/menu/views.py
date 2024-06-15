@@ -1,6 +1,8 @@
 from django.contrib.auth.models import User
 from rest_framework import viewsets
 from rest_framework.filters import OrderingFilter
+from rest_framework.generics import get_object_or_404
+from rest_framework.pagination import PageNumberPagination
 
 from menu.pagination import CustomPagination
 from menu.models import Menu, Category, MenuItem
@@ -40,6 +42,22 @@ class FiltersBaseViewSet(BaseViewSet):
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+    @action(detail=True, methods=['get'])
+    def menus(self, request, pk=None):
+        user = get_object_or_404(User, pk=pk)
+        menus = Menu.objects.filter(owner=user)
+
+        # Create a pagination instance
+        paginator = PageNumberPagination()
+
+        # Paginate the queryset
+        paginated_menus = paginator.paginate_queryset(menus, request)
+
+        serializer = MenuSerializer(paginated_menus, many=True, context={'request': request})
+
+        # Return the paginated response
+        return paginator.get_paginated_response(serializer.data)
 
 
 class MenuViewSet(BaseViewSet):
