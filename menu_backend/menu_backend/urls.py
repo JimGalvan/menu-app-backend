@@ -21,6 +21,7 @@ from rest_framework_nested import routers
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 from menu import views
+from menu.views import RegisterView, LoginView
 
 router = DefaultRouter()
 router.register(r'users', views.UserViewSet)
@@ -35,6 +36,8 @@ router.register(r'menu-items', views.MenuItemViewSet)
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
     path('', include(router.urls)),
+    path('register/', RegisterView.as_view(), name='register'),
+    path('login/', LoginView.as_view(), name='login'),
     path('api-auth/', include('rest_framework.urls')),
     path('admin/', admin.site.urls),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
