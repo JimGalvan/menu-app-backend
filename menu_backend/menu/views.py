@@ -14,6 +14,8 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 from menu.models import Menu, Category, MenuItem
 from menu.pagination import CustomPagination
@@ -27,6 +29,13 @@ class RegisterView(APIView):
         password = request.data.get('password')
         if not username or not password:
             return Response({'error': 'Username and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate the password
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
         user = User.objects.create_user(username=username, password=password)
         token, _ = Token.objects.get_or_create(user=user)
         return Response({'token': token.key}, status=status.HTTP_201_CREATED)
@@ -71,6 +80,18 @@ class FiltersBaseViewSet(BaseViewSet):
 class UserViewSet(BaseViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+    def create(self, request, *args, **kwargs):
+        password = request.data.get('password')
+        if not password:
+            return Response({'error': 'Password is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return super().create(request, *args, **kwargs)
 
     @action(detail=True, methods=['get'])
     def menus(self, request, pk=None):
